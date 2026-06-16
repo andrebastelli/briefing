@@ -278,7 +278,9 @@ export default function BriefingApp() {
 
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Briefing do Cliente')
-    XLSX.writeFile(wb, 'briefing_cliente.xlsx')
+    const nomeCliente = form.nome || 'cliente'
+    const nomeArquivo = `briefing_lp_${nomeCliente.toLowerCase().replace(/\s+/g, '_')}.xlsx`
+    XLSX.writeFile(wb, nomeArquivo)
   }
 
   if (done) {
