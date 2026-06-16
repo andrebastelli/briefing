@@ -289,7 +289,7 @@ export default function BriefingApp() {
           <img
             src={bastelliLogo}
             alt="Bastelli Consultoria"
-            className="h-10 w-auto object-contain mx-auto mb-6 fill-[#3e679f]"
+            className="h-10 w-auto object-contain mx-auto mb-6"
           />
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ backgroundColor: '#fdecdf' }}>
             <svg viewBox="0 0 24 24" className="h-12 w-12" fill="none" stroke={ORANGE} strokeWidth="3">
@@ -335,7 +335,7 @@ export default function BriefingApp() {
             <img
               src={bastelliLogo}
               alt="Bastelli Consultoria"
-              className="h-10 w-auto object-contain mx-auto mb-6 fill-[#3e679f]"
+              className="h-10 w-auto object-contain mx-auto mb-6"
             />
             <p className="mt-2 text-xs sm:text-sm font-semibold tracking-[0.18em] uppercase" style={{ color: BLUE }}>
               Briefing Estratégico
