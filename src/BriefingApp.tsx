@@ -329,7 +329,14 @@ export default function BriefingApp() {
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: FONT, color: DARK }}>
-      <div className="sticky top-0 z-10 bg-white border-b" style={{ borderColor: '#eef0f3' }}>
+      <div
+  className="sticky top-0 z-10 border-b"
+  style={{
+    background: "linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%)",
+    borderTop: "3px solid #3e679f",
+    borderColor: "#e6eaf0",
+  }}
+>
         <div className="max-w-2xl mx-auto px-4 pt-5 pb-3">
           <div className="flex flex-col items-center mb-4">
             <img
