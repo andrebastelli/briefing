@@ -107,7 +107,7 @@ const steps: Step[] = [
   },
 ]
 
-const BASTELLI_WA = import.meta.env.VITE_BASTELLI_WHATSAPP || '5511999999999'
+const BASTELLI_WA = import.meta.env.VITE_BASTELLI_WHATSAPP || '5519971142592'
 
 export default function BriefingApp() {
   const [stepIdx, setStepIdx] = useState(0)
@@ -286,7 +286,11 @@ export default function BriefingApp() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ fontFamily: FONT, backgroundColor: '#fff', color: DARK }}>
         <div className="max-w-md w-full text-center">
-          <img src={bastelliLogo} alt="Bastelli Consultoria" className="h-10 w-auto object-contain mx-auto mb-6" />
+          <img
+            src={bastelliLogo}
+            alt="Bastelli Consultoria"
+            className="h-10 w-auto object-contain mx-auto mb-6 fill-[#3e679f]"
+          />
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ backgroundColor: '#fdecdf' }}>
             <svg viewBox="0 0 24 24" className="h-12 w-12" fill="none" stroke={ORANGE} strokeWidth="3">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -328,7 +332,11 @@ export default function BriefingApp() {
       <div className="sticky top-0 z-10 bg-white border-b" style={{ borderColor: '#eef0f3' }}>
         <div className="max-w-2xl mx-auto px-4 pt-5 pb-3">
           <div className="flex flex-col items-center mb-4">
-            <img src={bastelliLogo} alt="Bastelli Consultoria" className="h-10 w-auto object-contain" />
+            <img
+              src={bastelliLogo}
+              alt="Bastelli Consultoria"
+              className="h-10 w-auto object-contain mx-auto mb-6 fill-[#3e679f]"
+            />
             <p className="mt-2 text-xs sm:text-sm font-semibold tracking-[0.18em] uppercase" style={{ color: BLUE }}>
               Briefing Estratégico
             </p>
