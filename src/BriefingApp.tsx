@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import * as XLSX from 'xlsx'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
 import bastelliLogo from '@/assets/bastelli-logo.png'
 
 const ORANGE = '#d47241'
@@ -217,13 +218,80 @@ export default function BriefingApp() {
   }
 
   const download = () => {
-    const rows: (string | number)[][] = [['Seção', 'Pergunta', 'Resposta']]
-    const push = (sec: string, q: string, a: any) => {
-      const ans = Array.isArray(a) ? a.join(', ') : a == null ? '' : String(a)
-      rows.push([sec, q, ans])
+    const hex2rgb = (hex: string): [number, number, number] => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [0, 0, 0]
     }
 
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 15
+    const contentWidth = pageWidth - 2 * margin
+    let yPos = margin
+
+    const addText = (text: string, fontSize: number = 12, bold: boolean = false, color?: string) => {
+      doc.setFontSize(fontSize)
+      doc.setTextColor(...hex2rgb(color || '#2e3b4b'))
+      doc.setFont('Helvetica', bold ? 'bold' : 'normal')
+      const lines = doc.splitTextToSize(text, contentWidth)
+      doc.text(lines, margin, yPos)
+      yPos += lines.length * (fontSize / 3.5) + 2
+      if (yPos > pageHeight - margin) {
+        doc.addPage()
+        yPos = margin
+      }
+    }
+
+    const addSection = (title: string) => {
+      if (yPos > pageHeight - margin - 20) {
+        doc.addPage()
+        yPos = margin
+      }
+      addText(title, 14, true, '#3e679f')
+      yPos += 2
+    }
+
+    const addField = (question: string, answer: any) => {
+      if (yPos > pageHeight - margin - 15) {
+        doc.addPage()
+        yPos = margin
+      }
+      doc.setFontSize(10)
+      doc.setTextColor(...hex2rgb('#2e3b4b'))
+      doc.setFont('Helvetica', 'bold')
+      const qLines = doc.splitTextToSize(`• ${question}:`, contentWidth)
+      doc.text(qLines, margin, yPos)
+      yPos += qLines.length * 3 + 1
+
+      const ans = Array.isArray(answer) ? answer.join(', ') : answer == null ? '(sem resposta)' : String(answer)
+      doc.setFont('Helvetica', 'normal')
+      const aLines = doc.splitTextToSize(ans, contentWidth - 5)
+      doc.text(aLines, margin + 5, yPos)
+      yPos += aLines.length * 3 + 4
+    }
+
+    // Cabeçalho
+    doc.setFontSize(16)
+    doc.setTextColor(...hex2rgb('#3e679f'))
+    doc.setFont('Helvetica', 'bold')
+    doc.text('BRIEFING ESTRATÉGICO', margin, yPos)
+    yPos += 8
+
+    doc.setFontSize(11)
+    doc.setTextColor(...hex2rgb('#2e3b4b'))
+    doc.setFont('Helvetica', 'normal')
+    doc.text(`Cliente: ${form.nome || 'Não informado'}`, margin, yPos)
+    yPos += 6
+    doc.setFontSize(9)
+    doc.setTextColor(0, 0, 0)
+    doc.setFont('Helvetica', 'normal')
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos)
+    yPos += 10
+
+    // Seções
     for (const s of steps) {
+      addSection(s.section)
       for (const f of s.fields) {
         let resposta: any = form[f.key]
         if (f.key === 'objetivo' && form.objetivo === 'Outro') {
@@ -241,50 +309,21 @@ export default function BriefingApp() {
           const detail = ff.map((x) => (x === 'Outro' ? `Outro: ${form.form_outro || ''}` : x)).join(', ')
           resposta = `Sim — Campos: ${detail}`
         }
-        push(s.section, f.label, resposta)
-        if (f.key === 'fotos' && form.fotos === 'Sim') push(s.section, 'Link das fotos', form.link_fotos)
-        if (f.key === 'videos' && form.videos === 'Sim') push(s.section, 'Link dos vídeos', form.link_videos)
-        if (f.key === 'depoi' && form.depoi && form.depoi !== 'Não tenho') push(s.section, 'Link dos depoimentos', form.link_depoi)
-        if (f.key === 'logo' && form.logo === 'Sim') push(s.section, 'Link do logotipo', form.link_logo)
+        addField(f.label, resposta)
+        if (f.key === 'fotos' && form.fotos === 'Sim') addField('Link das fotos', form.link_fotos)
+        if (f.key === 'videos' && form.videos === 'Sim') addField('Link dos vídeos', form.link_videos)
+        if (f.key === 'depoi' && form.depoi && form.depoi !== 'Não tenho') addField('Link dos depoimentos', form.link_depoi)
+        if (f.key === 'logo' && form.logo === 'Sim') addField('Link do logotipo', form.link_logo)
       }
     }
 
-    const ws = XLSX.utils.aoa_to_sheet(rows)
-    ws['!cols'] = [{ wch: 18 }, { wch: 40 }, { wch: 60 }]
-
-    const range = XLSX.utils.decode_range(ws['!ref'] as string)
-    for (let R = range.s.r; R <= range.e.r; R++) {
-      for (let C = range.s.c; C <= range.e.c; C++) {
-        const addr = XLSX.utils.encode_cell({ r: R, c: C })
-        const cell = ws[addr]
-        if (!cell) continue
-        if (R === 0) {
-          cell.s = {
-            fill: { fgColor: { rgb: '3e679f' } },
-            font: { color: { rgb: 'FFFFFF' }, bold: true },
-            alignment: { wrapText: true, vertical: 'top' },
-          }
-        } else if (C === 0) {
-          cell.s = {
-            fill: { fgColor: { rgb: 'eef2f8' } },
-            font: { color: { rgb: '2e3b4b' }, bold: true },
-            alignment: { wrapText: true, vertical: 'top' },
-          }
-        } else {
-          cell.s = { alignment: { wrapText: true, vertical: 'top' } }
-        }
-      }
-    }
-
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Briefing do Cliente')
     const nomeCliente = form.nome || 'cliente'
-    const nomeArquivo = `briefing_lp_${nomeCliente.toLowerCase().replace(/\s+/g, '_')}.xlsx`
-    XLSX.writeFile(wb, nomeArquivo)
+    const nomeArquivo = `briefing_lp_${nomeCliente.toLowerCase().replace(/\s+/g, '_')}.pdf`
+    doc.save(nomeArquivo)
   }
 
   if (done) {
-    const waUrl = `https://wa.me/${BASTELLI_WA}?text=${encodeURIComponent('Olá! Acabei de preencher o briefing e estou enviando a planilha.')}`
+    const waUrl = `https://wa.me/${BASTELLI_WA}?text=${encodeURIComponent('Olá! Acabei de preencher o briefing e estou enviando o documento.')}`
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ fontFamily: FONT, backgroundColor: '#fff', color: DARK }}>
         <div className="max-w-md w-full text-center">
@@ -300,17 +339,17 @@ export default function BriefingApp() {
           </div>
           <h1 className="text-3xl font-bold mb-3" style={{ color: DARK }}>Tudo pronto!</h1>
           <p className="mb-2" style={{ color: DARK }}>
-            <strong>1.</strong> Baixe a planilha com suas respostas.
+            <strong>1.</strong> Baixe o documento com suas respostas.
           </p>
           <p className="mb-8" style={{ color: DARK }}>
-            <strong>2.</strong> Envie a planilha para o WhatsApp da <strong>Bastelli Consultoria</strong> para iniciarmos o seu projeto.
+            <strong>2.</strong> Envie o documento para o WhatsApp da <strong>Bastelli Consultoria</strong> para iniciarmos o seu projeto.
           </p>
           <button
             onClick={download}
             className="w-full rounded-lg px-6 py-3 text-white font-semibold shadow-sm hover:opacity-90 transition mb-3"
             style={{ backgroundColor: ORANGE }}
           >
-            Baixar planilha
+            Baixar documento
           </button>
           <a
             href={waUrl}
