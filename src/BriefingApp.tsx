@@ -17,7 +17,7 @@ type Field =
 
 type Step = { title: string; section: string; fields: Field[] }
 
-const SOCIAIS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Youtube']
+const SOCIAIS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Youtube', 'Outro',]
 const FORM_FIELDS = ['Nome', 'E-mail', 'WhatsApp', 'Cidade', 'Serviço de interesse', 'Mensagem', 'Todos acima', 'Outro']
 
 const steps: Step[] = [
