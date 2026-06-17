@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import * as XLSX from 'xlsx'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
 import bastelliLogo from '@/assets/bastelli-logo.png'
 
 const ORANGE = '#d47241'
@@ -16,7 +17,7 @@ type Field =
 
 type Step = { title: string; section: string; fields: Field[] }
 
-const SOCIAIS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Youtube']
+const SOCIAIS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Youtube',]
 const FORM_FIELDS = ['Nome', 'E-mail', 'WhatsApp', 'Cidade', 'Serviço de interesse', 'Mensagem', 'Todos acima', 'Outro']
 
 const steps: Step[] = [
@@ -24,85 +25,84 @@ const steps: Step[] = [
     title: 'Sobre o seu negócio',
     section: '1. Negócio',
     fields: [
-      { key: 'nome', label: 'Nome da empresa ou profissional', type: 'text', hint: 'Como você quer ser chamado na página', required: true },
-      { key: 'oferta', label: 'O que você vende ou oferece?', type: 'textarea', hint: 'Produto, serviço, curso... descreva com suas palavras', required: true },
-      { key: 'objetivo', label: 'O que você quer que as pessoas façam na página?', type: 'radio', options: ['Entrar em contato', 'Comprar diretamente', 'Agendar atendimento', 'Pedir orçamento', 'Outro'], required: true },
-      { key: 'site_tem', label: 'Já tem site?', type: 'radio', options: ['Sim', 'Não'], required: true },
-      { key: 'redes', label: 'Redes sociais', type: 'radio', multi: true, options: SOCIAIS, required: true },
+      { key: 'nome', label: 'Nome da empresa ou profissional', type: 'text', hint: 'Como você quer ser chamado na página' },
+      { key: 'oferta', label: 'O que você vende ou oferece?', type: 'textarea', hint: 'Produto, serviço, curso... descreva com suas palavras' },
+      { key: 'objetivo', label: 'O que você quer que as pessoas façam na página?', type: 'radio', options: ['Entrar em contato', 'Comprar diretamente', 'Agendar atendimento', 'Pedir orçamento', 'Outro'] },
+      { key: 'site_tem', label: 'Já tem site?', type: 'radio', options: ['Sim', 'Não'] },
+      { key: 'redes', label: 'Redes sociais', type: 'radio', multi: true, options: SOCIAIS },
     ],
   },
   {
     title: 'Quem é o seu cliente?',
     section: '2. Cliente',
     fields: [
-      { key: 'publico', label: 'Como é a pessoa que você quer alcançar?', type: 'textarea', hint: 'Idade, se é homem/mulher/ambos, o que faz na vida', required: true },
-      { key: 'regiao', label: 'Onde essa pessoa mora?', type: 'text', hint: 'Ex: São Paulo, Brasil todo, online', required: true },
-      { key: 'b2', label: 'Vende para', type: 'radio', options: ['Pessoa física', 'Empresas', 'Ambos'], required: true },
-      { key: 'dor', label: 'Qual é o maior problema que você resolve?', type: 'textarea', required: true },
-      { key: 'desejo', label: 'O que seu cliente sonha em conquistar?', type: 'textarea', required: true },
-      { key: 'objecao', label: 'O que pode fazer a pessoa hesitar antes de entrar em contato?', type: 'textarea', hint: 'Ex: preço, dúvida se funciona, medo de não ser para ela', required: true },
+      { key: 'publico', label: 'Como é a pessoa que você quer alcançar?', type: 'textarea', hint: 'Idade, se é homem/mulher/ambos, o que faz na vida' },
+      { key: 'regiao', label: 'Onde essa pessoa mora?', type: 'text', hint: 'Ex: São Paulo, Brasil todo, online' },
+      { key: 'b2', label: 'Vende para', type: 'radio', options: ['Pessoa física', 'Empresas', 'Ambos'] },
+      { key: 'dor', label: 'Qual é o maior problema que você resolve?', type: 'textarea' },
+      { key: 'desejo', label: 'O que seu cliente sonha em conquistar?', type: 'textarea' },
+      { key: 'objecao', label: 'O que pode fazer a pessoa hesitar antes de entrar em contato?', type: 'textarea', hint: 'Ex: preço, dúvida se funciona, medo de não ser para ela' },
     ],
   },
   {
     title: 'O que você oferece',
     section: '3. Oferta',
     fields: [
-      { key: 'detalhe_oferta', label: 'Descreva sua oferta com detalhes', type: 'textarea', hint: 'O que está incluso, como funciona, quanto tempo dura', required: true },
-      { key: 'diferencial', label: 'Por que você é diferente dos concorrentes?', type: 'textarea', required: true },
-      { key: 'resultado', label: 'Qual resultado concreto o cliente pode esperar?', type: 'textarea', hint: 'Ex: Em 30 dias você vai conseguir...', required: true },
-      { key: 'garantia', label: 'Tem garantia, bônus ou vantagem especial?', type: 'textarea', required: true },
-      { key: 'preco_mostrar', label: 'Quer mostrar o preço na página?', type: 'radio', options: ['Sim', 'Não'], required: true },
-      { key: 'preco', label: 'Preço ou condição comercial', type: 'text', hint: 'Ex: R$ 497 ou 3x de R$ 197', required: true },
+      { key: 'detalhe_oferta', label: 'Descreva sua oferta com detalhes', type: 'textarea', hint: 'O que está incluso, como funciona, quanto tempo dura' },
+      { key: 'diferencial', label: 'Por que você é diferente dos concorrentes?', type: 'textarea' },
+      { key: 'resultado', label: 'Qual resultado concreto o cliente pode esperar?', type: 'textarea', hint: 'Ex: Em 30 dias você vai conseguir...' },
+      { key: 'garantia', label: 'Tem garantia, bônus ou vantagem especial?', type: 'textarea' },
+      { key: 'preco_mostrar', label: 'Quer mostrar o preço na página?', type: 'radio', options: ['Sim', 'Não'] },
     ],
   },
   {
     title: 'Como o cliente vai entrar em contato?',
     section: '4. Contato',
     fields: [
-      { key: 'whatsapp', label: 'Número de WhatsApp', type: 'whatsapp', hint: 'Apenas números, com DDD (11 dígitos)', required: true },
-      { key: 'email', label: 'E-mail de contato', type: 'email', hint: 'Ex: contato@suaempresa.com', required: true },
-      { key: 'cta', label: 'Texto do botão principal', type: 'text', hint: 'O que vai aparecer escrito no botão — Ex: Falar no WhatsApp', required: true },
-      { key: 'form', label: 'Quer formulário na página?', type: 'radio', options: ['Sim', 'Não'], required: true },
-      { key: 'msg_wa', label: 'Mensagem pré-preenchida no WhatsApp', type: 'textarea', hint: 'Texto que aparece automaticamente quando a pessoa clica no botão', required: true },
+      { key: 'whatsapp', label: 'Número de WhatsApp', type: 'whatsapp', hint: 'Apenas números, com DDD (11 dígitos)' },
+      { key: 'email', label: 'E-mail de contato', type: 'email', hint: 'Ex: contato@suaempresa.com' },
+      { key: 'cta', label: 'Texto do botão principal', type: 'text', hint: 'O que vai aparecer escrito no botão — Ex: Falar no WhatsApp' },
+      { key: 'form', label: 'Quer formulário na página?', type: 'radio', options: ['Sim', 'Não'] },
+      { key: 'msg_wa', label: 'Mensagem pré-preenchida no WhatsApp', type: 'textarea', hint: 'Texto que aparece automaticamente quando a pessoa clica no botão' },
     ],
   },
   {
     title: 'Fotos, vídeos e depoimentos',
     section: '5. Materiais',
     fields: [
-      { key: 'fotos', label: 'Tem fotos da empresa, produto ou equipe?', type: 'radio', options: ['Sim', 'Não'], required: true },
-      { key: 'videos', label: 'Tem vídeos?', type: 'radio', options: ['Sim', 'Não'], required: true },
-      { key: 'depoi', label: 'Tem depoimentos de clientes?', type: 'radio', options: ['Sim, em texto', 'Sim, em vídeo', 'Sim, print de WhatsApp/Google', 'Não tenho'], required: true },
+      { key: 'fotos', label: 'Tem fotos da empresa, produto ou equipe?', type: 'radio', options: ['Sim', 'Não'] },
+      { key: 'videos', label: 'Tem vídeos?', type: 'radio', options: ['Sim', 'Não'] },
+      { key: 'depoi', label: 'Tem depoimentos de clientes?', type: 'radio', options: ['Sim, em texto', 'Sim, em vídeo', 'Sim, print de WhatsApp/Google', 'Não tenho'] },
     ],
   },
   {
     title: 'Como você quer que a página fique?',
     section: '6. Visual',
     fields: [
-      { key: 'logo', label: 'Tem logotipo?', type: 'radio', options: ['Sim', 'Não'], required: true },
-      { key: 'cores', label: 'Cores da marca', type: 'text', hint: "Código hex (#...) ou nome da cor: 'azul e dourado'", required: true },
-      { key: 'estilo', label: 'Estilo visual desejado', type: 'radio', multi: true, options: ['Moderno', 'Minimalista', 'Elegante', 'Corporativo', 'Criativo', 'Popular'], required: true },
-      { key: 'fundo', label: 'Prefere fundo', type: 'radio', options: ['Claro (branco/bege)', 'Escuro (preto/cinza)', 'Híbrido (mistura)'], required: true },
-      { key: 'ref_visual', label: 'Link de site ou página que você acha bonito', type: 'textarea', required: true },
+      { key: 'logo', label: 'Tem logotipo?', type: 'radio', options: ['Sim', 'Não'] },
+      { key: 'cores', label: 'Cores da marca', type: 'text', hint: "Código hex (#...) ou nome da cor: 'azul e dourado'" },
+      { key: 'estilo', label: 'Estilo visual desejado', type: 'radio', multi: true, options: ['Moderno', 'Minimalista', 'Elegante', 'Corporativo', 'Criativo', 'Popular', 'Outro'] },
+      { key: 'fundo', label: 'Prefere fundo', type: 'radio', options: ['Claro (branco/bege)', 'Escuro (preto/cinza)', 'Híbrido (mistura)'] },
+      { key: 'ref_visual', label: 'Link de site ou página que você acha bonito', type: 'textarea' },
     ],
   },
   {
     title: 'Jeito de escrever',
     section: '7. Textos',
     fields: [
-      { key: 'tom', label: 'Como você quer que os textos soem?', type: 'radio', options: ['Formal e sério', 'Amigável e descontraído', 'Técnico e especialista', 'Emocional e inspirador', 'Direto e objetivo', 'Premium e sofisticado'], required: true },
-      { key: 'slogan', label: 'Tem slogan ou frase que já usa?', type: 'text', required: true },
-      { key: 'proibido', label: 'Tem palavra ou assunto que não pode aparecer?', type: 'textarea', required: true },
+      { key: 'tom', label: 'Como você quer que os textos soem?', type: 'radio', options: ['Formal e sério', 'Amigável e descontraído', 'Técnico e especialista', 'Emocional e inspirador', 'Direto e objetivo', 'Premium e sofisticado', 'Outro'] },
+      { key: 'slogan', label: 'Tem slogan ou frase que já usa?', type: 'text' },
+      { key: 'proibido', label: 'Tem palavra ou assunto que não pode aparecer?', type: 'textarea' },
     ],
   },
   {
     title: 'Referências e informações extras',
     section: '8. Extras',
     fields: [
-      { key: 'concorrentes', label: 'Sites de concorrentes', type: 'textarea', hint: 'Vamos analisar para te diferenciar — um link por linha', required: true },
-      { key: 'inspiracao', label: 'Páginas que você achou interessantes', type: 'textarea', hint: 'Mesmo de outro segmento — cole os links', required: true },
-      { key: 'extra', label: 'Informação adicional', type: 'textarea', hint: 'Qualquer coisa que não foi coberta acima', required: true },
-      { key: 'contato_nome', label: 'Seu nome para contato', type: 'text', required: true },
+      { key: 'concorrentes', label: 'Sites de concorrentes', type: 'textarea', hint: 'Vamos analisar para te diferenciar — um link por linha' },
+      { key: 'inspiracao', label: 'Páginas que você achou interessantes', type: 'textarea', hint: 'Mesmo de outro segmento — cole os links' },
+      { key: 'extra', label: 'Informação adicional', type: 'textarea', hint: 'Qualquer coisa que não foi coberta acima' },
+      { key: 'contato_nome', label: 'Seu nome para contato', type: 'text' },
     ],
   },
 ]
@@ -217,13 +217,80 @@ export default function BriefingApp() {
   }
 
   const download = () => {
-    const rows: (string | number)[][] = [['Seção', 'Pergunta', 'Resposta']]
-    const push = (sec: string, q: string, a: any) => {
-      const ans = Array.isArray(a) ? a.join(', ') : a == null ? '' : String(a)
-      rows.push([sec, q, ans])
+    const hex2rgb = (hex: string): [number, number, number] => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [0, 0, 0]
     }
 
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 15
+    const contentWidth = pageWidth - 2 * margin
+    let yPos = margin
+
+    const addText = (text: string, fontSize: number = 12, bold: boolean = false, color?: string) => {
+      doc.setFontSize(fontSize)
+      doc.setTextColor(...hex2rgb(color || '#2e3b4b'))
+      doc.setFont('Helvetica', bold ? 'bold' : 'normal')
+      const lines = doc.splitTextToSize(text, contentWidth)
+      doc.text(lines, margin, yPos)
+      yPos += lines.length * (fontSize / 3.5) + 2
+      if (yPos > pageHeight - margin) {
+        doc.addPage()
+        yPos = margin
+      }
+    }
+
+    const addSection = (title: string) => {
+      if (yPos > pageHeight - margin - 20) {
+        doc.addPage()
+        yPos = margin
+      }
+      addText(title, 14, true, '#3e679f')
+      yPos += 2
+    }
+
+    const addField = (question: string, answer: any) => {
+      if (yPos > pageHeight - margin - 15) {
+        doc.addPage()
+        yPos = margin
+      }
+      doc.setFontSize(10)
+      doc.setTextColor(...hex2rgb('#2e3b4b'))
+      doc.setFont('Helvetica', 'bold')
+      const qLines = doc.splitTextToSize(`• ${question}:`, contentWidth)
+      doc.text(qLines, margin, yPos)
+      yPos += qLines.length * 3 + 1
+
+      const ans = Array.isArray(answer) ? answer.join(', ') : answer == null ? '(sem resposta)' : String(answer)
+      doc.setFont('Helvetica', 'normal')
+      const aLines = doc.splitTextToSize(ans, contentWidth - 5)
+      doc.text(aLines, margin + 5, yPos)
+      yPos += aLines.length * 3 + 4
+    }
+
+    // Cabeçalho
+    doc.setFontSize(16)
+    doc.setTextColor(...hex2rgb('#3e679f'))
+    doc.setFont('Helvetica', 'bold')
+    doc.text('BRIEFING ESTRATÉGICO', margin, yPos)
+    yPos += 8
+
+    doc.setFontSize(11)
+    doc.setTextColor(...hex2rgb('#2e3b4b'))
+    doc.setFont('Helvetica', 'normal')
+    doc.text(`Cliente: ${form.nome || 'Não informado'}`, margin, yPos)
+    yPos += 6
+    doc.setFontSize(9)
+    doc.setTextColor(0, 0, 0)
+    doc.setFont('Helvetica', 'normal')
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos)
+    yPos += 10
+
+    // Seções
     for (const s of steps) {
+      addSection(s.section)
       for (const f of s.fields) {
         let resposta: any = form[f.key]
         if (f.key === 'objetivo' && form.objetivo === 'Outro') {
@@ -241,50 +308,31 @@ export default function BriefingApp() {
           const detail = ff.map((x) => (x === 'Outro' ? `Outro: ${form.form_outro || ''}` : x)).join(', ')
           resposta = `Sim — Campos: ${detail}`
         }
-        push(s.section, f.label, resposta)
-        if (f.key === 'fotos' && form.fotos === 'Sim') push(s.section, 'Link das fotos', form.link_fotos)
-        if (f.key === 'videos' && form.videos === 'Sim') push(s.section, 'Link dos vídeos', form.link_videos)
-        if (f.key === 'depoi' && form.depoi && form.depoi !== 'Não tenho') push(s.section, 'Link dos depoimentos', form.link_depoi)
-        if (f.key === 'logo' && form.logo === 'Sim') push(s.section, 'Link do logotipo', form.link_logo)
-      }
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet(rows)
-    ws['!cols'] = [{ wch: 18 }, { wch: 40 }, { wch: 60 }]
-
-    const range = XLSX.utils.decode_range(ws['!ref'] as string)
-    for (let R = range.s.r; R <= range.e.r; R++) {
-      for (let C = range.s.c; C <= range.e.c; C++) {
-        const addr = XLSX.utils.encode_cell({ r: R, c: C })
-        const cell = ws[addr]
-        if (!cell) continue
-        if (R === 0) {
-          cell.s = {
-            fill: { fgColor: { rgb: '3e679f' } },
-            font: { color: { rgb: 'FFFFFF' }, bold: true },
-            alignment: { wrapText: true, vertical: 'top' },
-          }
-        } else if (C === 0) {
-          cell.s = {
-            fill: { fgColor: { rgb: 'eef2f8' } },
-            font: { color: { rgb: '2e3b4b' }, bold: true },
-            alignment: { wrapText: true, vertical: 'top' },
-          }
-        } else {
-          cell.s = { alignment: { wrapText: true, vertical: 'top' } }
+        if (f.key === 'preco_mostrar' && form.preco_mostrar === 'Sim') {
+          resposta = `Sim — ${form.preco || ''}`
         }
+        if (f.key === 'estilo') {
+          const estilos: string[] = form.estilo || []
+          resposta = estilos.map((e) => (e === 'Outro' ? `Outro: ${form.estilo_outro || ''}` : e)).join(', ')
+        }
+        if (f.key === 'tom' && form.tom === 'Outro') {
+          resposta = `Outro: ${form.tom_outro || ''}`
+        }
+        addField(f.label, resposta)
+        if (f.key === 'fotos' && form.fotos === 'Sim') addField('Link das fotos', form.link_fotos)
+        if (f.key === 'videos' && form.videos === 'Sim') addField('Link dos vídeos', form.link_videos)
+        if (f.key === 'depoi' && form.depoi && form.depoi !== 'Não tenho') addField('Link dos depoimentos', form.link_depoi)
+        if (f.key === 'logo' && form.logo === 'Sim') addField('Link do logotipo', form.link_logo)
       }
     }
 
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Briefing do Cliente')
     const nomeCliente = form.nome || 'cliente'
-    const nomeArquivo = `briefing_lp_${nomeCliente.toLowerCase().replace(/\s+/g, '_')}.xlsx`
-    XLSX.writeFile(wb, nomeArquivo)
+    const nomeArquivo = `briefing_lp_${nomeCliente.toLowerCase().replace(/\s+/g, '_')}.pdf`
+    doc.save(nomeArquivo)
   }
 
   if (done) {
-    const waUrl = `https://wa.me/${BASTELLI_WA}?text=${encodeURIComponent('Olá! Acabei de preencher o briefing e estou enviando a planilha.')}`
+    const waUrl = `https://wa.me/${BASTELLI_WA}?text=${encodeURIComponent('Olá! Acabei de preencher o briefing e estou enviando o documento.')}`
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ fontFamily: FONT, backgroundColor: '#fff', color: DARK }}>
         <div className="max-w-md w-full text-center">
@@ -300,17 +348,17 @@ export default function BriefingApp() {
           </div>
           <h1 className="text-3xl font-bold mb-3" style={{ color: DARK }}>Tudo pronto!</h1>
           <p className="mb-2" style={{ color: DARK }}>
-            <strong>1.</strong> Baixe a planilha com suas respostas.
+            <strong>1.</strong> Baixe o documento com suas respostas.
           </p>
           <p className="mb-8" style={{ color: DARK }}>
-            <strong>2.</strong> Envie a planilha para o WhatsApp da <strong>Bastelli Consultoria</strong> para iniciarmos o seu projeto.
+            <strong>2.</strong> Envie o documento para o WhatsApp da <strong>Bastelli Consultoria</strong> para iniciarmos o seu projeto.
           </p>
           <button
             onClick={download}
             className="w-full rounded-lg px-6 py-3 text-white font-semibold shadow-sm hover:opacity-90 transition mb-3"
             style={{ backgroundColor: ORANGE }}
           >
-            Baixar planilha
+            Baixar documento
           </button>
           <a
             href={waUrl}
@@ -456,6 +504,48 @@ export default function BriefingApp() {
                       />
                     </div>
                   )}
+                </Reveal>
+              )}
+
+              {f.key === 'preco_mostrar' && form.preco_mostrar === 'Sim' && (
+                <Reveal label="Preço ou condição comercial">
+                  <input
+                    type="text"
+                    value={form.preco || ''}
+                    onChange={(e) => setValue('preco', e.target.value)}
+                    placeholder="Ex: R$ 497 ou 3x de R$ 197"
+                    className="w-full rounded-lg border px-3 py-2 font-regular"
+                    style={{ borderColor: errors.preco ? '#ef4444' : '#E5E7EB', color: DARK }}
+                  />
+                  {errors.preco && <p className="mt-1 text-xs text-red-500">{errors.preco}</p>}
+                </Reveal>
+              )}
+
+              {f.key === 'estilo' && (form.estilo || []).includes('Outro') && (
+                <Reveal>
+                  <RemovableInput
+                    value={form.estilo_outro || ''}
+                    onChange={(v) => setValue('estilo_outro', v)}
+                    onRemove={() => {
+                      const cur: string[] = form.estilo || []
+                      setValue('estilo', cur.filter((x) => x !== 'Outro'))
+                      setValue('estilo_outro', '')
+                    }}
+                    placeholder="Descreva o estilo visual desejado"
+                    error={errors.estilo_outro}
+                  />
+                </Reveal>
+              )}
+
+              {f.key === 'tom' && form.tom === 'Outro' && (
+                <Reveal>
+                  <RemovableInput
+                    value={form.tom_outro || ''}
+                    onChange={(v) => setValue('tom_outro', v)}
+                    onRemove={() => { setValue('tom', ''); setValue('tom_outro', '') }}
+                    placeholder="Descreva o tom desejado"
+                    error={errors.tom_outro}
+                  />
                 </Reveal>
               )}
 
