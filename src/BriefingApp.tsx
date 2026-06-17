@@ -17,7 +17,7 @@ type Field =
 
 type Step = { title: string; section: string; fields: Field[] }
 
-const SOCIAIS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Youtube', 'Outro',]
+const SOCIAIS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Youtube',]
 const FORM_FIELDS = ['Nome', 'E-mail', 'WhatsApp', 'Cidade', 'Serviço de interesse', 'Mensagem', 'Todos acima', 'Outro']
 
 const steps: Step[] = [
@@ -82,7 +82,7 @@ const steps: Step[] = [
     fields: [
       { key: 'logo', label: 'Tem logotipo?', type: 'radio', options: ['Sim', 'Não'], required: true },
       { key: 'cores', label: 'Cores da marca', type: 'text', hint: "Código hex (#...) ou nome da cor: 'azul e dourado'", required: true },
-      { key: 'estilo', label: 'Estilo visual desejado', type: 'radio', multi: true, options: ['Moderno', 'Minimalista', 'Elegante', 'Corporativo', 'Criativo', 'Popular', 'Outro'], required: true },
+      { key: 'estilo', label: 'Estilo visual desejado', type: 'radio', multi: true, options: ['Moderno', 'Minimalista', 'Elegante', 'Corporativo', 'Criativo', 'Popular'], required: true },
       { key: 'fundo', label: 'Prefere fundo', type: 'radio', options: ['Claro (branco/bege)', 'Escuro (preto/cinza)', 'Híbrido (mistura)'], required: true },
       { key: 'ref_visual', label: 'Link de site ou página que você acha bonito', type: 'textarea', required: true },
     ],
