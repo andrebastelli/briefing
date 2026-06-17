@@ -53,7 +53,6 @@ const steps: Step[] = [
       { key: 'resultado', label: 'Qual resultado concreto o cliente pode esperar?', type: 'textarea', hint: 'Ex: Em 30 dias você vai conseguir...' },
       { key: 'garantia', label: 'Tem garantia, bônus ou vantagem especial?', type: 'textarea' },
       { key: 'preco_mostrar', label: 'Quer mostrar o preço na página?', type: 'radio', options: ['Sim', 'Não'] },
-      { key: 'preco', label: 'Preço ou condição comercial', type: 'text', hint: 'Ex: R$ 497 ou 3x de R$ 197' },
     ],
   },
   {
@@ -82,7 +81,7 @@ const steps: Step[] = [
     fields: [
       { key: 'logo', label: 'Tem logotipo?', type: 'radio', options: ['Sim', 'Não'] },
       { key: 'cores', label: 'Cores da marca', type: 'text', hint: "Código hex (#...) ou nome da cor: 'azul e dourado'" },
-      { key: 'estilo', label: 'Estilo visual desejado', type: 'radio', multi: true, options: ['Moderno', 'Minimalista', 'Elegante', 'Corporativo', 'Criativo', 'Popular'] },
+      { key: 'estilo', label: 'Estilo visual desejado', type: 'radio', multi: true, options: ['Moderno', 'Minimalista', 'Elegante', 'Corporativo', 'Criativo', 'Popular', 'Outro'] },
       { key: 'fundo', label: 'Prefere fundo', type: 'radio', options: ['Claro (branco/bege)', 'Escuro (preto/cinza)', 'Híbrido (mistura)'] },
       { key: 'ref_visual', label: 'Link de site ou página que você acha bonito', type: 'textarea' },
     ],
@@ -91,7 +90,7 @@ const steps: Step[] = [
     title: 'Jeito de escrever',
     section: '7. Textos',
     fields: [
-      { key: 'tom', label: 'Como você quer que os textos soem?', type: 'radio', options: ['Formal e sério', 'Amigável e descontraído', 'Técnico e especialista', 'Emocional e inspirador', 'Direto e objetivo', 'Premium e sofisticado'] },
+      { key: 'tom', label: 'Como você quer que os textos soem?', type: 'radio', options: ['Formal e sério', 'Amigável e descontraído', 'Técnico e especialista', 'Emocional e inspirador', 'Direto e objetivo', 'Premium e sofisticado', 'Outro'] },
       { key: 'slogan', label: 'Tem slogan ou frase que já usa?', type: 'text' },
       { key: 'proibido', label: 'Tem palavra ou assunto que não pode aparecer?', type: 'textarea' },
     ],
@@ -309,6 +308,16 @@ export default function BriefingApp() {
           const detail = ff.map((x) => (x === 'Outro' ? `Outro: ${form.form_outro || ''}` : x)).join(', ')
           resposta = `Sim — Campos: ${detail}`
         }
+        if (f.key === 'preco_mostrar' && form.preco_mostrar === 'Sim') {
+          resposta = `Sim — ${form.preco || ''}`
+        }
+        if (f.key === 'estilo') {
+          const estilos: string[] = form.estilo || []
+          resposta = estilos.map((e) => (e === 'Outro' ? `Outro: ${form.estilo_outro || ''}` : e)).join(', ')
+        }
+        if (f.key === 'tom' && form.tom === 'Outro') {
+          resposta = `Outro: ${form.tom_outro || ''}`
+        }
         addField(f.label, resposta)
         if (f.key === 'fotos' && form.fotos === 'Sim') addField('Link das fotos', form.link_fotos)
         if (f.key === 'videos' && form.videos === 'Sim') addField('Link dos vídeos', form.link_videos)
@@ -495,6 +504,48 @@ export default function BriefingApp() {
                       />
                     </div>
                   )}
+                </Reveal>
+              )}
+
+              {f.key === 'preco_mostrar' && form.preco_mostrar === 'Sim' && (
+                <Reveal label="Preço ou condição comercial">
+                  <input
+                    type="text"
+                    value={form.preco || ''}
+                    onChange={(e) => setValue('preco', e.target.value)}
+                    placeholder="Ex: R$ 497 ou 3x de R$ 197"
+                    className="w-full rounded-lg border px-3 py-2 font-regular"
+                    style={{ borderColor: errors.preco ? '#ef4444' : '#E5E7EB', color: DARK }}
+                  />
+                  {errors.preco && <p className="mt-1 text-xs text-red-500">{errors.preco}</p>}
+                </Reveal>
+              )}
+
+              {f.key === 'estilo' && (form.estilo || []).includes('Outro') && (
+                <Reveal>
+                  <RemovableInput
+                    value={form.estilo_outro || ''}
+                    onChange={(v) => setValue('estilo_outro', v)}
+                    onRemove={() => {
+                      const cur: string[] = form.estilo || []
+                      setValue('estilo', cur.filter((x) => x !== 'Outro'))
+                      setValue('estilo_outro', '')
+                    }}
+                    placeholder="Descreva o estilo visual desejado"
+                    error={errors.estilo_outro}
+                  />
+                </Reveal>
+              )}
+
+              {f.key === 'tom' && form.tom === 'Outro' && (
+                <Reveal>
+                  <RemovableInput
+                    value={form.tom_outro || ''}
+                    onChange={(v) => setValue('tom_outro', v)}
+                    onRemove={() => { setValue('tom', ''); setValue('tom_outro', '') }}
+                    placeholder="Descreva o tom desejado"
+                    error={errors.tom_outro}
+                  />
                 </Reveal>
               )}
 
